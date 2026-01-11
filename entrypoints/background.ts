@@ -21,6 +21,8 @@ import { browser } from 'wxt/browser';
 import { MessageType, type MessageRequest } from '@/shared/messages';
 import { runMigrations, migrations } from '@/services/migrations';
 import { exportData, importData, resetAllData } from '@/services/import-export';
+import { startGithubAuth, completeGithubAuth, clearGithubAuth } from '@/services/github-auth';
+import { getGithubSyncStatus, pullGithubSync, pushGithubSync } from '@/services/github-sync';
 
 export default defineBackground(async () => {
   // Run migrations on startup
@@ -104,6 +106,24 @@ export default defineBackground(async () => {
 
       case MessageType.RESET_ALL_DATA:
         return await resetAllData();
+
+      case MessageType.GITHUB_START_AUTH:
+        return await startGithubAuth();
+
+      case MessageType.GITHUB_COMPLETE_AUTH:
+        return await completeGithubAuth(request.deviceCode, request.interval);
+
+      case MessageType.GITHUB_SIGN_OUT:
+        return await clearGithubAuth();
+
+      case MessageType.GITHUB_GET_STATUS:
+        return await getGithubSyncStatus();
+
+      case MessageType.GITHUB_PUSH_SYNC:
+        return await pushGithubSync();
+
+      case MessageType.GITHUB_PULL_SYNC:
+        return await pullGithubSync();
 
       default: {
         // This should never happen with proper typing - exhaustive check

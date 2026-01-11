@@ -32,6 +32,12 @@ export const MessageType = {
   EXPORT_DATA: 'EXPORT_DATA',
   IMPORT_DATA: 'IMPORT_DATA',
   RESET_ALL_DATA: 'RESET_ALL_DATA',
+  GITHUB_START_AUTH: 'GITHUB_START_AUTH',
+  GITHUB_COMPLETE_AUTH: 'GITHUB_COMPLETE_AUTH',
+  GITHUB_SIGN_OUT: 'GITHUB_SIGN_OUT',
+  GITHUB_GET_STATUS: 'GITHUB_GET_STATUS',
+  GITHUB_PUSH_SYNC: 'GITHUB_PUSH_SYNC',
+  GITHUB_PULL_SYNC: 'GITHUB_PULL_SYNC',
 } as const;
 
 // Message request types as discriminated union
@@ -67,7 +73,13 @@ export type MessageRequest =
   | { type: typeof MessageType.GET_NEXT_N_DAYS_STATS; days: number }
   | { type: typeof MessageType.EXPORT_DATA }
   | { type: typeof MessageType.IMPORT_DATA; jsonData: string }
-  | { type: typeof MessageType.RESET_ALL_DATA };
+  | { type: typeof MessageType.RESET_ALL_DATA }
+  | { type: typeof MessageType.GITHUB_START_AUTH }
+  | { type: typeof MessageType.GITHUB_COMPLETE_AUTH; deviceCode: string; interval: number }
+  | { type: typeof MessageType.GITHUB_SIGN_OUT }
+  | { type: typeof MessageType.GITHUB_GET_STATUS }
+  | { type: typeof MessageType.GITHUB_PUSH_SYNC }
+  | { type: typeof MessageType.GITHUB_PULL_SYNC };
 
 // Type mapping for request to response
 export type MessageResponseMap = {
@@ -96,6 +108,22 @@ export type MessageResponseMap = {
   [MessageType.EXPORT_DATA]: string;
   [MessageType.IMPORT_DATA]: void;
   [MessageType.RESET_ALL_DATA]: void;
+  [MessageType.GITHUB_START_AUTH]: {
+    verificationUri: string;
+    userCode: string;
+    expiresIn: number;
+    interval: number;
+    deviceCode: string;
+  };
+  [MessageType.GITHUB_COMPLETE_AUTH]: void;
+  [MessageType.GITHUB_SIGN_OUT]: void;
+  [MessageType.GITHUB_GET_STATUS]: {
+    isConnected: boolean;
+    lastSyncAt: string | null;
+    gistId: string | null;
+  };
+  [MessageType.GITHUB_PUSH_SYNC]: void;
+  [MessageType.GITHUB_PULL_SYNC]: void;
 };
 
 /**
