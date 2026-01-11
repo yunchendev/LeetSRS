@@ -121,7 +121,6 @@ export type MessageResponseMap = {
     isConnected: boolean;
     lastSyncAt: string | null;
     gistId: string | null;
-    clientIdAvailable: boolean;
   };
   [MessageType.GITHUB_PUSH_SYNC]: void;
   [MessageType.GITHUB_PULL_SYNC]: void;

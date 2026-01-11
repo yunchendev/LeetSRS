@@ -13,10 +13,6 @@ function ensureGithubClientId(): string {
   return GITHUB_CLIENT_ID;
 }
 
-export function isGithubClientConfigured(): boolean {
-  return Boolean(GITHUB_CLIENT_ID);
-}
-
 interface DeviceCodeResponse {
   device_code: string;
   user_code: string;
