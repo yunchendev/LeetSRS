@@ -10,7 +10,7 @@ export default defineConfig({
     },
     name: 'LeetSRS',
     permissions: ['storage'],
-    host_permissions: ['*://*.leetcode.com/*'],
+    host_permissions: ['*://*.leetcode.com/*', 'https://github.com/*', 'https://api.github.com/*'],
   },
   vite: () => ({
     plugins: [tailwindcss()],

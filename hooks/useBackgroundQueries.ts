@@ -32,6 +32,9 @@ export const queryKeys = {
     animationsEnabled: ['settings', 'animationsEnabled'] as const,
     theme: ['settings', 'theme'] as const,
   },
+  github: {
+    status: ['github', 'status'] as const,
+  },
 } as const;
 
 // Queries
@@ -257,6 +260,13 @@ export function useThemeQuery() {
   });
 }
 
+export function useGithubStatusQuery() {
+  return useQuery({
+    queryKey: queryKeys.github.status,
+    queryFn: () => sendMessage({ type: MessageType.GITHUB_GET_STATUS }),
+  });
+}
+
 export function useSetThemeMutation() {
   const queryClient = useQueryClient();
 
@@ -264,6 +274,59 @@ export function useSetThemeMutation() {
     mutationFn: (value: Theme) => sendMessage({ type: MessageType.SET_THEME, value }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.settings.theme });
+    },
+  });
+}
+
+export function useGithubStartAuthMutation() {
+  return useMutation({
+    mutationFn: () => sendMessage({ type: MessageType.GITHUB_START_AUTH }),
+  });
+}
+
+export function useGithubCompleteAuthMutation() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ deviceCode, interval }: { deviceCode: string; interval: number }) =>
+      sendMessage({ type: MessageType.GITHUB_COMPLETE_AUTH, deviceCode, interval }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.github.status });
+    },
+  });
+}
+
+export function useGithubSignOutMutation() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: () => sendMessage({ type: MessageType.GITHUB_SIGN_OUT }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.github.status });
+    },
+  });
+}
+
+export function useGithubPushSyncMutation() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: () => sendMessage({ type: MessageType.GITHUB_PUSH_SYNC }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.github.status });
+      queryClient.invalidateQueries();
+    },
+  });
+}
+
+export function useGithubPullSyncMutation() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: () => sendMessage({ type: MessageType.GITHUB_PULL_SYNC }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.github.status });
+      queryClient.invalidateQueries();
     },
   });
 }
