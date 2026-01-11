@@ -13,10 +13,6 @@ function ensureGithubClientId(): string {
   return GITHUB_CLIENT_ID;
 }
 
-export function isGithubClientConfigured(): boolean {
-  return Boolean(GITHUB_CLIENT_ID);
-}
-
 interface DeviceCodeResponse {
   device_code: string;
   user_code: string;
@@ -80,10 +76,7 @@ export interface GithubAuthStart {
   deviceCode: string;
 }
 
-export async function startGithubAuth(): Promise<GithubAuthStart | null> {
-  if (!isGithubClientConfigured()) {
-    return null;
-  }
+export async function startGithubAuth(): Promise<GithubAuthStart> {
   const deviceCode = await requestDeviceCode();
   return {
     verificationUri: deviceCode.verification_uri,

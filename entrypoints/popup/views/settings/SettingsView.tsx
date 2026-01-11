@@ -245,22 +245,14 @@ function DataSection() {
 
   const handleGithubConnect = async () => {
     try {
-      if (!githubStatus?.clientIdAvailable) {
-        alert(i18n.settings.data.githubMissingClientId);
-        return;
-      }
       const auth = await githubStartAuthMutation.mutateAsync();
-      if (!auth) {
-        alert(i18n.settings.data.githubMissingClientId);
-        return;
-      }
       setGithubAuthInfo({
         verificationUri: auth.verificationUri,
         userCode: auth.userCode,
         deviceCode: auth.deviceCode,
         interval: auth.interval,
       });
-      await browser.tabs.create({ url: auth.verificationUri });
+      window.open(auth.verificationUri, '_blank', 'noopener,noreferrer');
       await githubCompleteAuthMutation.mutateAsync({ deviceCode: auth.deviceCode, interval: auth.interval });
       setGithubAuthInfo(null);
     } catch (error) {
@@ -309,7 +301,6 @@ function DataSection() {
   };
 
   const isConnected = githubStatus?.isConnected ?? false;
-  const isClientConfigured = githubStatus?.clientIdAvailable ?? false;
 
   return (
     <div className="mb-6 p-4 rounded-lg bg-secondary text-primary">
@@ -360,9 +351,6 @@ function DataSection() {
             {githubStatus?.lastSyncAt ? new Date(githubStatus.lastSyncAt).toLocaleString() : '—'}
           </div>
         )}
-        {!isClientConfigured && (
-          <div className="text-xs text-tertiary">{i18n.settings.data.githubMissingClientId}</div>
-        )}
         {githubAuthInfo && !isConnected && (
           <div className="text-xs text-tertiary">
             <div>{i18n.settings.data.githubSyncing}</div>
@@ -375,7 +363,7 @@ function DataSection() {
           {!isConnected ? (
             <Button
               onPress={handleGithubConnect}
-              isDisabled={!isClientConfigured || githubStartAuthMutation.isPending || githubCompleteAuthMutation.isPending}
+              isDisabled={githubStartAuthMutation.isPending || githubCompleteAuthMutation.isPending}
               className={`w-full px-4 py-2 rounded transition-opacity hover:opacity-80 bg-tertiary text-primary ${bounceButton}`}
             >
               {githubCompleteAuthMutation.isPending ? i18n.settings.data.githubSyncing : i18n.settings.data.githubConnect}

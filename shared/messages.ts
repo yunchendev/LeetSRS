@@ -114,14 +114,13 @@ export type MessageResponseMap = {
     expiresIn: number;
     interval: number;
     deviceCode: string;
-  } | null;
+  };
   [MessageType.GITHUB_COMPLETE_AUTH]: void;
   [MessageType.GITHUB_SIGN_OUT]: void;
   [MessageType.GITHUB_GET_STATUS]: {
     isConnected: boolean;
     lastSyncAt: string | null;
     gistId: string | null;
-    clientIdAvailable: boolean;
   };
   [MessageType.GITHUB_PUSH_SYNC]: void;
   [MessageType.GITHUB_PULL_SYNC]: void;
