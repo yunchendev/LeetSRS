@@ -175,7 +175,6 @@ export const i18n = {
       githubSyncFailed: 'GitHub sync failed:',
       githubSyncSuccess: 'GitHub sync complete!',
       githubSignOutFailed: 'GitHub sign-out failed:',
-      githubMissingClientId: 'GitHub OAuth is not configured. Set VITE_GITHUB_CLIENT_ID to enable sign-in.',
       importConfirmMessage:
         'Are you sure you want to import this data?\n\nThis will replace ALL your current data including cards, review history, and notes.',
       importSuccess: 'Data imported successfully!',

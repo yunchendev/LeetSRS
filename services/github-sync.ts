@@ -1,7 +1,7 @@
 import { storage } from '#imports';
 import { exportData, importData } from './import-export';
 import { STORAGE_KEYS } from './storage-keys';
-import { getGithubAccessToken, isGithubClientConfigured } from './github-auth';
+import { getGithubAccessToken } from './github-auth';
 
 const GIST_FILENAME = 'leetsrs-backup.json';
 const GITHUB_API_BASE = 'https://api.github.com';
@@ -45,7 +45,6 @@ export async function getGithubSyncStatus(): Promise<{
   isConnected: boolean;
   lastSyncAt: string | null;
   gistId: string | null;
-  clientIdAvailable: boolean;
 }> {
   const token = await getGithubAccessToken();
   const lastSyncAt = (await storage.getItem<string>(STORAGE_KEYS.githubLastSyncAt)) ?? null;
@@ -54,7 +53,6 @@ export async function getGithubSyncStatus(): Promise<{
     isConnected: Boolean(token),
     lastSyncAt,
     gistId,
-    clientIdAvailable: isGithubClientConfigured(),
   };
 }
 

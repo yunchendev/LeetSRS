@@ -6,8 +6,11 @@ const GITHUB_SCOPE = 'gist';
 const GITHUB_DEVICE_CODE_URL = 'https://github.com/login/device/code';
 const GITHUB_TOKEN_URL = 'https://github.com/login/oauth/access_token';
 
-export function isGithubClientConfigured(): boolean {
-  return Boolean(GITHUB_CLIENT_ID);
+function ensureGithubClientId(): string {
+  if (!GITHUB_CLIENT_ID) {
+    throw new Error('Missing GitHub client ID.');
+  }
+  return GITHUB_CLIENT_ID;
 }
 
 interface DeviceCodeResponse {
@@ -24,10 +27,7 @@ interface TokenResponse {
   error_description?: string;
 }
 
-async function requestDeviceCode(): Promise<DeviceCodeResponse | null> {
-  if (!isGithubClientConfigured()) {
-    return null;
-  }
+async function requestDeviceCode(): Promise<DeviceCodeResponse> {
   const response = await fetch(GITHUB_DEVICE_CODE_URL, {
     method: 'POST',
     headers: {
@@ -35,7 +35,7 @@ async function requestDeviceCode(): Promise<DeviceCodeResponse | null> {
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      client_id: GITHUB_CLIENT_ID,
+      client_id: ensureGithubClientId(),
       scope: GITHUB_SCOPE,
     }),
   });
@@ -55,7 +55,7 @@ async function fetchGithubToken(deviceCode: string): Promise<TokenResponse> {
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      client_id: GITHUB_CLIENT_ID,
+      client_id: ensureGithubClientId(),
       device_code: deviceCode,
       grant_type: 'urn:ietf:params:oauth:grant-type:device_code',
     }),
@@ -76,11 +76,8 @@ export interface GithubAuthStart {
   deviceCode: string;
 }
 
-export async function startGithubAuth(): Promise<GithubAuthStart | null> {
+export async function startGithubAuth(): Promise<GithubAuthStart> {
   const deviceCode = await requestDeviceCode();
-  if (!deviceCode) {
-    return null;
-  }
   return {
     verificationUri: deviceCode.verification_uri,
     userCode: deviceCode.user_code,
@@ -91,9 +88,6 @@ export async function startGithubAuth(): Promise<GithubAuthStart | null> {
 }
 
 export async function completeGithubAuth(deviceCode: string, intervalSeconds: number): Promise<void> {
-  if (!isGithubClientConfigured()) {
-    return;
-  }
   const intervalMs = Math.max(intervalSeconds, 1) * 1000;
   let attempts = 0;
 
