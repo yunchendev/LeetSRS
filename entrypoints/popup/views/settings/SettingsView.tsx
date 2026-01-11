@@ -12,6 +12,12 @@ import {
   useExportDataMutation,
   useImportDataMutation,
   useResetAllDataMutation,
+  useGithubStatusQuery,
+  useGithubStartAuthMutation,
+  useGithubCompleteAuthMutation,
+  useGithubSignOutMutation,
+  useGithubPushSyncMutation,
+  useGithubPullSyncMutation,
 } from '@/hooks/useBackgroundQueries';
 import {
   DEFAULT_MAX_NEW_CARDS_PER_DAY,
@@ -149,8 +155,20 @@ function DataSection() {
   const exportDataMutation = useExportDataMutation();
   const importDataMutation = useImportDataMutation();
   const resetAllDataMutation = useResetAllDataMutation();
+  const { data: githubStatus } = useGithubStatusQuery();
+  const githubStartAuthMutation = useGithubStartAuthMutation();
+  const githubCompleteAuthMutation = useGithubCompleteAuthMutation();
+  const githubSignOutMutation = useGithubSignOutMutation();
+  const githubPushSyncMutation = useGithubPushSyncMutation();
+  const githubPullSyncMutation = useGithubPullSyncMutation();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [resetConfirmation, setResetConfirmation] = useState(false);
+  const [githubAuthInfo, setGithubAuthInfo] = useState<{
+    verificationUri: string;
+    userCode: string;
+    deviceCode: string;
+    interval: number;
+  } | null>(null);
 
   const handleExport = async () => {
     try {
@@ -224,6 +242,65 @@ function DataSection() {
     }
   };
 
+  const handleGithubConnect = async () => {
+    try {
+      const auth = await githubStartAuthMutation.mutateAsync();
+      setGithubAuthInfo({
+        verificationUri: auth.verificationUri,
+        userCode: auth.userCode,
+        deviceCode: auth.deviceCode,
+        interval: auth.interval,
+      });
+      window.open(auth.verificationUri, '_blank', 'noopener,noreferrer');
+      await githubCompleteAuthMutation.mutateAsync({ deviceCode: auth.deviceCode, interval: auth.interval });
+      setGithubAuthInfo(null);
+    } catch (error) {
+      console.error('GitHub sign-in failed:', error);
+      setGithubAuthInfo(null);
+      alert(
+        `${i18n.settings.data.githubSignInFailed} ${error instanceof Error ? error.message : i18n.errors.unknownError}`,
+      );
+    }
+  };
+
+  const handleGithubDisconnect = async () => {
+    try {
+      await githubSignOutMutation.mutateAsync();
+      setGithubAuthInfo(null);
+    } catch (error) {
+      console.error('GitHub sign-out failed:', error);
+      alert(
+        `${i18n.settings.data.githubSignOutFailed} ${error instanceof Error ? error.message : i18n.errors.unknownError}`,
+      );
+    }
+  };
+
+  const handleGithubPushSync = async () => {
+    try {
+      await githubPushSyncMutation.mutateAsync();
+      alert(i18n.settings.data.githubSyncSuccess);
+    } catch (error) {
+      console.error('GitHub push sync failed:', error);
+      alert(
+        `${i18n.settings.data.githubSyncFailed} ${error instanceof Error ? error.message : i18n.errors.unknownError}`,
+      );
+    }
+  };
+
+  const handleGithubPullSync = async () => {
+    try {
+      await githubPullSyncMutation.mutateAsync();
+      alert(i18n.settings.data.githubSyncSuccess);
+    } catch (error) {
+      console.error('GitHub pull sync failed:', error);
+      alert(
+        `${i18n.settings.data.githubSyncFailed} ${error instanceof Error ? error.message : i18n.errors.unknownError}`,
+      );
+    }
+  };
+
+  const isConnected = githubStatus?.isConnected ?? false;
+
   return (
     <div className="mb-6 p-4 rounded-lg bg-secondary text-primary">
       <h3 className="text-lg font-semibold mb-4">{i18n.settings.data.title}</h3>
@@ -261,6 +338,59 @@ function DataSection() {
               ? i18n.settings.data.clickToConfirm
               : i18n.settings.data.resetAllData}
         </Button>
+      </div>
+      <div className="mt-4 border-t border-tertiary/40 pt-4 space-y-2">
+        <h4 className="text-base font-semibold">{i18n.settings.data.githubSyncTitle}</h4>
+        <div className="text-sm text-tertiary">
+          {isConnected ? i18n.settings.data.githubConnected : i18n.settings.data.githubDisconnected}
+        </div>
+        {isConnected && (
+          <div className="text-xs text-tertiary">
+            {i18n.settings.data.githubLastSync}:{' '}
+            {githubStatus?.lastSyncAt ? new Date(githubStatus.lastSyncAt).toLocaleString() : '—'}
+          </div>
+        )}
+        {githubAuthInfo && !isConnected && (
+          <div className="text-xs text-tertiary">
+            <div>{i18n.settings.data.githubSyncing}</div>
+            <div>
+              {githubAuthInfo.verificationUri} • {githubAuthInfo.userCode}
+            </div>
+          </div>
+        )}
+        <div className="space-y-2">
+          {!isConnected ? (
+            <Button
+              onPress={handleGithubConnect}
+              isDisabled={githubStartAuthMutation.isPending || githubCompleteAuthMutation.isPending}
+              className={`w-full px-4 py-2 rounded transition-opacity hover:opacity-80 bg-tertiary text-primary ${bounceButton}`}
+            >
+              {githubCompleteAuthMutation.isPending ? i18n.settings.data.githubSyncing : i18n.settings.data.githubConnect}
+            </Button>
+          ) : (
+            <Button
+              onPress={handleGithubDisconnect}
+              isDisabled={githubSignOutMutation.isPending}
+              className={`w-full px-4 py-2 rounded transition-opacity hover:opacity-80 bg-tertiary text-primary ${bounceButton}`}
+            >
+              {i18n.settings.data.githubDisconnect}
+            </Button>
+          )}
+          <Button
+            onPress={handleGithubPushSync}
+            isDisabled={!isConnected || githubPushSyncMutation.isPending}
+            className={`w-full px-4 py-2 rounded transition-opacity hover:opacity-80 bg-tertiary text-primary ${bounceButton}`}
+          >
+            {githubPushSyncMutation.isPending ? i18n.settings.data.githubSyncing : i18n.settings.data.githubPushSync}
+          </Button>
+          <Button
+            onPress={handleGithubPullSync}
+            isDisabled={!isConnected || githubPullSyncMutation.isPending}
+            className={`w-full px-4 py-2 rounded transition-opacity hover:opacity-80 bg-tertiary text-primary ${bounceButton}`}
+          >
+            {githubPullSyncMutation.isPending ? i18n.settings.data.githubSyncing : i18n.settings.data.githubPullSync}
+          </Button>
+        </div>
       </div>
     </div>
   );
