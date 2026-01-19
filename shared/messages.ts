@@ -29,6 +29,8 @@ export const MessageType = {
   DELETE_NOTE: 'DELETE_NOTE',
   GET_MAX_NEW_CARDS_PER_DAY: 'GET_MAX_NEW_CARDS_PER_DAY',
   SET_MAX_NEW_CARDS_PER_DAY: 'SET_MAX_NEW_CARDS_PER_DAY',
+  GET_DAY_START_HOUR: 'GET_DAY_START_HOUR',
+  SET_DAY_START_HOUR: 'SET_DAY_START_HOUR',
   GET_ANIMATIONS_ENABLED: 'GET_ANIMATIONS_ENABLED',
   SET_ANIMATIONS_ENABLED: 'SET_ANIMATIONS_ENABLED',
   GET_THEME: 'GET_THEME',
@@ -74,6 +76,8 @@ export type MessageRequest =
   | { type: typeof MessageType.DELETE_NOTE; cardId: string }
   | { type: typeof MessageType.GET_MAX_NEW_CARDS_PER_DAY }
   | { type: typeof MessageType.SET_MAX_NEW_CARDS_PER_DAY; value: number }
+  | { type: typeof MessageType.GET_DAY_START_HOUR }
+  | { type: typeof MessageType.SET_DAY_START_HOUR; value: number }
   | { type: typeof MessageType.GET_ANIMATIONS_ENABLED }
   | { type: typeof MessageType.SET_ANIMATIONS_ENABLED; value: boolean }
   | { type: typeof MessageType.GET_THEME }
@@ -111,6 +115,8 @@ export type MessageResponseMap = {
   [MessageType.DELETE_NOTE]: void;
   [MessageType.GET_MAX_NEW_CARDS_PER_DAY]: number;
   [MessageType.SET_MAX_NEW_CARDS_PER_DAY]: void;
+  [MessageType.GET_DAY_START_HOUR]: number;
+  [MessageType.SET_DAY_START_HOUR]: void;
   [MessageType.GET_ANIMATIONS_ENABLED]: boolean;
   [MessageType.SET_ANIMATIONS_ENABLED]: void;
   [MessageType.GET_THEME]: Theme;
