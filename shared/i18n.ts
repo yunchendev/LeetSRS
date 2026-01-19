@@ -71,7 +71,7 @@ export const i18n = {
   home: {
     loadingReviewQueue: 'Loading review queue...',
     noCardsToReview: 'No cards to review!',
-    addProblemsInstructions: 'Add problems on LeetCode using the',
+    addProblemsInstructions: 'Add problems on LeetCode or NeetCode using the',
     addProblemsButton: "button next to 'Submit'.",
   },
 
@@ -150,6 +150,16 @@ export const i18n = {
     reviewSettings: {
       title: 'Review Settings',
       newCardsPerDay: 'New Cards Per Day',
+    },
+
+    // Hotkeys section
+    hotkeys: {
+      title: 'Hotkeys',
+      description: 'Customize keyboard shortcuts for LeetSRS.',
+      openPopupLabel: 'Open popup',
+      currentShortcutLabel: 'Current shortcut',
+      notSet: 'Not set',
+      manageShortcuts: 'Manage shortcuts',
     },
 
     // Data section

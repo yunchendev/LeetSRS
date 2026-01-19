@@ -5,6 +5,7 @@ import type { Grade } from 'ts-fsrs';
 import { Button } from 'react-aria-components';
 import { bounceButton } from '@/shared/styles';
 import { i18n } from '@/shared/i18n';
+import { getNeetcodeUrlForLeetcodeSlug } from '@/shared/neetcode-mapping';
 
 type ReviewCardProps = {
   card: Pick<Card, 'slug' | 'leetcodeId' | 'name' | 'difficulty'>;
@@ -33,6 +34,8 @@ const ratingButtons: RatingButtonConfig[] = [
 
 export function ReviewCard({ card, onRate, isProcessing = false }: ReviewCardProps) {
   const difficultyColor = difficultyColorMap[card.difficulty] || 'bg-difficulty-medium';
+  const leetcodeUrl = `https://leetcode.com/problems/${card.slug}/description/`;
+  const neetcodeUrl = getNeetcodeUrlForLeetcodeSlug(card.slug);
 
   const handleRating = (rating: Grade) => {
     onRate(rating);
@@ -45,16 +48,30 @@ export function ReviewCard({ card, onRate, isProcessing = false }: ReviewCardPro
         <span className={`text-xs px-2 py-1 rounded text-white ${difficultyColor}`}>{card.difficulty}</span>
       </div>
 
-      <div className="flex justify-center pb-3 -mt-1 text-center">
-        <a
-          href={`https://leetcode.com/problems/${card.slug}/description/`}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="text-lg font-semibold text-primary group"
-        >
-          {card.name}
-          <FaArrowUpRightFromSquare className="inline ml-1.5 text-xs opacity-60 group-hover:opacity-100 transition-opacity" />
-        </a>
+      <div className="flex flex-col items-center gap-1 pb-3 -mt-1 text-center">
+        <span className="text-lg font-semibold text-primary">{card.name}</span>
+        <div className="flex items-center gap-3 text-sm text-secondary">
+          <a
+            href={leetcodeUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="group inline-flex items-center gap-1 hover:text-primary"
+          >
+            LeetCode
+            <FaArrowUpRightFromSquare className="text-xs opacity-60 group-hover:opacity-100 transition-opacity" />
+          </a>
+          {neetcodeUrl ? (
+            <a
+              href={neetcodeUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="group inline-flex items-center gap-1 hover:text-primary"
+            >
+              NeetCode
+              <FaArrowUpRightFromSquare className="text-xs opacity-60 group-hover:opacity-100 transition-opacity" />
+            </a>
+          ) : null}
+        </div>
       </div>
 
       <div className="flex gap-2 justify-center">
@@ -63,7 +80,7 @@ export function ReviewCard({ card, onRate, isProcessing = false }: ReviewCardPro
             key={label}
             onPress={() => handleRating(rating)}
             isDisabled={isProcessing}
-            className={`w-16 py-1.5 rounded text-sm ${colorClass} text-white hover:opacity-90 ${bounceButton} disabled:opacity-50 disabled:cursor-not-allowed`}
+            className={`w-20 py-2 rounded text-base ${colorClass} text-white hover:opacity-90 ${bounceButton} disabled:opacity-50 disabled:cursor-not-allowed`}
           >
             {label}
           </Button>

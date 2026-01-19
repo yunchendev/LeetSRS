@@ -1,11 +1,6 @@
-import type { Difficulty } from '@/shared/cards';
-
-export interface ProblemData {
-  difficulty: Difficulty;
-  title: string;
-  titleSlug: string;
-  questionFrontendId: string;
-}
+import type { ProblemData } from '@/shared/problem-data';
+import { sendMessage, MessageType } from '@/shared/messages';
+import { getLeetcodeSlugForNeetcodeSlug } from '@/shared/neetcode-mapping';
 
 // Cache to avoid redundant requests
 let cachedData: { slug: string; data: ProblemData } | null = null;
@@ -18,9 +13,15 @@ export function clearCache(): void {
 export async function extractProblemData(): Promise<ProblemData | null> {
   try {
     // Get the current slug from the URL or router
-    const titleSlug = getCurrentTitleSlug();
-    if (!titleSlug) {
+    const currentSlug = getCurrentTitleSlug();
+    const isNeetcode = isNeetcodeHost();
+    if (!currentSlug) {
       console.log('Could not extract title slug');
+      return null;
+    }
+    const titleSlug = isNeetcode ? getLeetcodeSlugForNeetcodeSlug(currentSlug) : currentSlug;
+    if (!titleSlug) {
+      console.log('Could not map NeetCode slug to LeetCode slug');
       return null;
     }
 
@@ -30,7 +31,7 @@ export async function extractProblemData(): Promise<ProblemData | null> {
     }
 
     // Make async GraphQL request for fresh data
-    const problemData = await fetchProblemData(titleSlug);
+    const problemData = await fetchProblemData(titleSlug, isNeetcode);
     if (problemData) {
       // Update cache
       cachedData = { slug: titleSlug, data: problemData };
@@ -58,7 +59,35 @@ function getCurrentTitleSlug(): string | null {
   return pathMatch ? pathMatch[1] : null;
 }
 
-async function fetchProblemData(titleSlug: string): Promise<ProblemData | null> {
+function isNeetcodeHost(): boolean {
+  const hostname = window.location?.hostname ?? '';
+  return hostname.endsWith('neetcode.io');
+}
+
+async function fetchProblemData(titleSlug: string, preferBackground: boolean): Promise<ProblemData | null> {
+  if (preferBackground) {
+    const fromBackground = await fetchProblemDataFromBackground(titleSlug);
+    if (fromBackground) {
+      return fromBackground;
+    }
+  }
+
+  return await fetchProblemDataFromPage(titleSlug);
+}
+
+async function fetchProblemDataFromBackground(titleSlug: string): Promise<ProblemData | null> {
+  try {
+    return await sendMessage({
+      type: MessageType.FETCH_LEETCODE_PROBLEM,
+      titleSlug,
+    });
+  } catch (error) {
+    console.error('Error fetching problem data from background:', error);
+    return null;
+  }
+}
+
+async function fetchProblemDataFromPage(titleSlug: string): Promise<ProblemData | null> {
   try {
     // LeetCode's GraphQL endpoint
     const graphqlQuery = {
@@ -104,7 +133,7 @@ async function fetchProblemData(titleSlug: string): Promise<ProblemData | null> 
 
       if (question) {
         return {
-          difficulty: question.difficulty as Difficulty,
+          difficulty: question.difficulty as ProblemData['difficulty'],
           title: question.title,
           titleSlug: question.titleSlug,
           questionFrontendId: question.questionFrontendId,

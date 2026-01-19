@@ -69,8 +69,16 @@ describe('ReviewCard', () => {
 
     it('should render the external link to LeetCode problem', () => {
       renderWithProviders();
-      const link = screen.getByRole('link', { name: /Two Sum/i });
+      const link = screen.getByRole('link', { name: /LeetCode/i });
       expect(link).toHaveAttribute('href', 'https://leetcode.com/problems/two-sum/description/');
+      expect(link).toHaveAttribute('target', '_blank');
+      expect(link).toHaveAttribute('rel', 'noopener noreferrer');
+    });
+
+    it('should render the external link to NeetCode problem when available', () => {
+      renderWithProviders();
+      const link = screen.getByRole('link', { name: /NeetCode/i });
+      expect(link).toHaveAttribute('href', 'https://neetcode.io/problems/two-integer-sum/');
       expect(link).toHaveAttribute('target', '_blank');
       expect(link).toHaveAttribute('rel', 'noopener noreferrer');
     });
@@ -164,7 +172,7 @@ describe('ReviewCard', () => {
       const buttons = screen.getAllByRole('button');
 
       buttons.forEach((button) => {
-        expect(button).toHaveClass('w-16');
+        expect(button).toHaveClass('w-20');
       });
     });
   });
@@ -187,7 +195,7 @@ describe('ReviewCard', () => {
       };
       renderWithProviders(specialCard);
 
-      const link = screen.getByRole('link');
+      const link = screen.getByRole('link', { name: /LeetCode/i });
       expect(link).toHaveAttribute('href', 'https://leetcode.com/problems/problem-with-special_chars-123/description/');
     });
   });
@@ -204,7 +212,7 @@ describe('ReviewCard', () => {
 
     it('should have accessible link with proper attributes', () => {
       renderWithProviders();
-      const link = screen.getByRole('link');
+      const link = screen.getByRole('link', { name: /LeetCode/i });
 
       expect(link).toHaveAttribute('target', '_blank');
       expect(link).toHaveAttribute('rel', 'noopener noreferrer');

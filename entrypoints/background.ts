@@ -31,6 +31,8 @@ import {
   validateGistId,
 } from '@/services/github-sync';
 import { markDataUpdated } from '@/services/data-tracker';
+import type { ProblemData } from '@/shared/problem-data';
+import type { Difficulty } from '@/shared/cards';
 
 const SYNC_ALARM_NAME = 'gist-sync';
 const SYNC_INTERVAL_MINUTES = 1;
@@ -196,6 +198,9 @@ export default defineBackground(() => {
       case MessageType.VALIDATE_GIST_ID:
         return await validateGistId(request.gistId, request.pat);
 
+      case MessageType.FETCH_LEETCODE_PROBLEM:
+        return await fetchLeetcodeProblemData(request.titleSlug);
+
       default: {
         // Exhaustive check - compile error if a message type is not handled
         const _: never = request;
@@ -211,4 +216,63 @@ export default defineBackground(() => {
     // Return true to indicate we'll send a response asynchronously
     return true;
   });
+
+  browser.commands.onCommand.addListener(async (command) => {
+    if (command !== 'open-popup') return;
+
+    try {
+      await browser.action.openPopup();
+    } catch (error) {
+      console.error('Failed to open popup:', error);
+    }
+  });
 });
+
+async function fetchLeetcodeProblemData(titleSlug: string): Promise<ProblemData | null> {
+  try {
+    const graphqlQuery = {
+      query: `
+        query questionData($titleSlug: String!) {
+          question(titleSlug: $titleSlug) {
+            questionId
+            questionFrontendId
+            title
+            titleSlug
+            difficulty
+          }
+        }
+      `,
+      variables: {
+        titleSlug: titleSlug,
+      },
+    };
+
+    const response = await fetch('https://leetcode.com/graphql', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(graphqlQuery),
+    });
+
+    if (!response.ok) {
+      return null;
+    }
+
+    const data = await response.json();
+    const question = data?.data?.question;
+    if (!question) {
+      return null;
+    }
+
+    return {
+      difficulty: question.difficulty as Difficulty,
+      title: question.title,
+      titleSlug: question.titleSlug,
+      questionFrontendId: question.questionFrontendId,
+    };
+  } catch (error) {
+    console.error('Error fetching problem data from LeetCode:', error);
+    return null;
+  }
+}

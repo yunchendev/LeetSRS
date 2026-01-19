@@ -1,5 +1,6 @@
 import { browser } from 'wxt/browser';
 import type { Card, Difficulty } from '@/shared/cards';
+import type { ProblemData } from '@/shared/problem-data';
 import type { Grade, State as FsrsState } from 'ts-fsrs';
 import type { DailyStats, UpcomingReviewStats } from '@/services/stats';
 import type { Note } from '@/shared/notes';
@@ -47,6 +48,7 @@ export const MessageType = {
   CREATE_NEW_GIST: 'CREATE_NEW_GIST',
   VALIDATE_PAT: 'VALIDATE_PAT',
   VALIDATE_GIST_ID: 'VALIDATE_GIST_ID',
+  FETCH_LEETCODE_PROBLEM: 'FETCH_LEETCODE_PROBLEM',
 } as const;
 
 // Message request types as discriminated union
@@ -90,7 +92,8 @@ export type MessageRequest =
   | { type: typeof MessageType.TRIGGER_GIST_SYNC }
   | { type: typeof MessageType.CREATE_NEW_GIST }
   | { type: typeof MessageType.VALIDATE_PAT; pat: string }
-  | { type: typeof MessageType.VALIDATE_GIST_ID; gistId: string; pat: string };
+  | { type: typeof MessageType.VALIDATE_GIST_ID; gistId: string; pat: string }
+  | { type: typeof MessageType.FETCH_LEETCODE_PROBLEM; titleSlug: string };
 
 // Type mapping for request to response
 export type MessageResponseMap = {
@@ -127,6 +130,7 @@ export type MessageResponseMap = {
   [MessageType.CREATE_NEW_GIST]: { gistId: string };
   [MessageType.VALIDATE_PAT]: PatValidationResult;
   [MessageType.VALIDATE_GIST_ID]: GistValidationResult;
+  [MessageType.FETCH_LEETCODE_PROBLEM]: ProblemData | null;
 };
 
 /**
