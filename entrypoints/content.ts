@@ -3,6 +3,7 @@ import {
   extractProblemData,
   RatingMenu,
   setupLeetcodeAutoReset,
+  setupNeetcodeAutoReset,
   Tooltip,
 } from '@/utils/content';
 import { sendMessage, MessageType } from '@/shared/messages';
@@ -21,7 +22,7 @@ export default defineContentScript({
     }
     if (isNeetcodeHost()) {
       setupNeetcodeLeetSrsButton();
-      setupNeetcodeAutoClear();
+      setupNeetcodeAutoReset();
       return;
     }
 
@@ -49,81 +50,6 @@ async function withProblemData<T>(
 
 function isNeetcodeHost(): boolean {
   return window.location.hostname.endsWith('neetcode.io');
-}
-
-function isLeetcodeHost(): boolean {
-  return window.location.hostname.endsWith('leetcode.com');
-}
-
-function getNeetcodeSlugFromPath(): string | null {
-  const match = window.location.pathname.match(/\/problems\/([^/]+)/);
-  return match ? match[1] : null;
-}
-
-
-function clearNeetcodeLocalStorageForSlug(slug: string) {
-  const keysToRemove: string[] = [];
-  const prefix = `${slug}_`;
-  for (let index = 0; index < localStorage.length; index += 1) {
-    const key = localStorage.key(index);
-    if (!key) {
-      continue;
-    }
-    if (key.startsWith(prefix) || key.includes(`${slug}_`)) {
-      keysToRemove.push(key);
-    }
-  }
-
-  keysToRemove.forEach((key) => {
-    localStorage.removeItem(key);
-  });
-}
-
-function setupNeetcodeAutoClear() {
-  if (!isNeetcodeHost()) {
-    return;
-  }
-
-  let autoClearEnabled = false;
-  let lastClearedSlug: string | null = null;
-  let lastAttemptedSlug: string | null = null;
-
-  const loadSetting = async () => {
-    try {
-      autoClearEnabled = await sendMessage({ type: MessageType.GET_AUTO_CLEAR_NEETCODE });
-    } catch (error) {
-      console.error('Failed to load NeetCode auto-clear setting:', error);
-    }
-  };
-
-  const scheduleAutoClear = async () => {
-    if (!autoClearEnabled) {
-      return;
-    }
-
-    if (!window.location.pathname.includes('/problems/')) {
-      return;
-    }
-
-    const slug = getNeetcodeSlugFromPath();
-    if (!slug || slug === lastClearedSlug || slug === lastAttemptedSlug) {
-      return;
-    }
-
-    lastAttemptedSlug = slug;
-    clearNeetcodeLocalStorageForSlug(slug);
-    lastClearedSlug = slug;
-  };
-
-  void loadSetting().then(scheduleAutoClear);
-
-  const observer = new MutationObserver(() => {
-    void scheduleAutoClear();
-  });
-  observer.observe(document.body, {
-    childList: true,
-    subtree: true,
-  });
 }
 
 function setupLeetSrsButton() {
