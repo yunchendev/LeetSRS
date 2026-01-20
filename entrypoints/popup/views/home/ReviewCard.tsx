@@ -80,7 +80,7 @@ export function ReviewCard({ card, onRate, isProcessing = false }: ReviewCardPro
             key={label}
             onPress={() => handleRating(rating)}
             isDisabled={isProcessing}
-            className={`w-20 py-2 rounded text-base ${colorClass} text-white hover:opacity-90 ${bounceButton} disabled:opacity-50 disabled:cursor-not-allowed`}
+            className={`w-20 py-1.5 rounded text-sm ${colorClass} text-white hover:opacity-90 ${bounceButton} disabled:opacity-50 disabled:cursor-not-allowed`}
           >
             {label}
           </Button>

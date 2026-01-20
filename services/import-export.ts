@@ -14,14 +14,14 @@ export interface ExportData {
     cards: Record<string, StoredCard>;
     stats: Record<string, DailyStats>;
     notes: Record<string, Note>;
-      settings: {
-        maxNewCardsPerDay?: number;
-        dayStartHour?: number;
-        animationsEnabled?: boolean;
-        theme?: Theme;
-        autoClearLeetcode?: boolean;
-        autoClearNeetcode?: boolean;
-      };
+    settings: {
+      maxNewCardsPerDay?: number;
+      dayStartHour?: number;
+      animationsEnabled?: boolean;
+      theme?: Theme;
+      autoClearLeetcode?: boolean;
+      autoClearNeetcode?: boolean;
+    };
     gistSync?: {
       gistId?: string;
       enabled?: boolean;

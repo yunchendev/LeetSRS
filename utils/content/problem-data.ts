@@ -1,7 +1,5 @@
 import type { ProblemData } from '@/shared/problem-data';
-import { sendMessage, MessageType } from '@/shared/messages';
 import { getLeetcodeSlugForNeetcodeSlug } from '@/shared/neetcode-mapping';
-
 // Cache to avoid redundant requests
 let cachedData: { slug: string; data: ProblemData } | null = null;
 
@@ -29,9 +27,8 @@ export async function extractProblemData(): Promise<ProblemData | null> {
     if (cachedData && cachedData.slug === titleSlug) {
       return cachedData.data;
     }
-
     // Make async GraphQL request for fresh data
-    const problemData = await fetchProblemData(titleSlug, isNeetcode);
+    const problemData = await fetchProblemDataFromPage(titleSlug);
     if (problemData) {
       // Update cache
       cachedData = { slug: titleSlug, data: problemData };
@@ -62,29 +59,6 @@ function getCurrentTitleSlug(): string | null {
 function isNeetcodeHost(): boolean {
   const hostname = window.location?.hostname ?? '';
   return hostname.endsWith('neetcode.io');
-}
-
-async function fetchProblemData(titleSlug: string, preferBackground: boolean): Promise<ProblemData | null> {
-  if (preferBackground) {
-    const fromBackground = await fetchProblemDataFromBackground(titleSlug);
-    if (fromBackground) {
-      return fromBackground;
-    }
-  }
-
-  return await fetchProblemDataFromPage(titleSlug);
-}
-
-async function fetchProblemDataFromBackground(titleSlug: string): Promise<ProblemData | null> {
-  try {
-    return await sendMessage({
-      type: MessageType.FETCH_LEETCODE_PROBLEM,
-      titleSlug,
-    });
-  } catch (error) {
-    console.error('Error fetching problem data from background:', error);
-    return null;
-  }
 }
 
 async function fetchProblemDataFromPage(titleSlug: string): Promise<ProblemData | null> {

@@ -8,6 +8,5 @@ export const MAX_DAY_START_HOUR = 23;
 
 export const DEFAULT_AUTO_CLEAR_LEETCODE = false;
 export const DEFAULT_AUTO_CLEAR_NEETCODE = false;
-
 export type Theme = 'light' | 'dark';
 export const DEFAULT_THEME: Theme = 'dark';

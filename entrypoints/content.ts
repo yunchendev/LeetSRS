@@ -1,6 +1,11 @@
-import { createLeetSrsButton, extractProblemData, RatingMenu, Tooltip } from '@/utils/content';
+import {
+  createLeetSrsButton,
+  extractProblemData,
+  RatingMenu,
+  setupLeetcodeAutoReset,
+  Tooltip,
+} from '@/utils/content';
 import { sendMessage, MessageType } from '@/shared/messages';
-import { browser } from 'wxt/browser';
 import type { Grade } from 'ts-fsrs';
 import { i18n } from '@/shared/i18n';
 
@@ -21,7 +26,7 @@ export default defineContentScript({
     }
 
     setupLeetSrsButton();
-    setupLeetcodeAutoClear();
+    setupLeetcodeAutoReset();
   },
 });
 
@@ -55,69 +60,6 @@ function getNeetcodeSlugFromPath(): string | null {
   return match ? match[1] : null;
 }
 
-function clickResetButton(buttonContainer: HTMLElement) {
-  const buttons = buttonContainer.getElementsByTagName('button');
-  const resetButton = buttons.length > 4 ? buttons[3] : null;
-
-  if (resetButton) {
-    resetButton.click();
-    observeConfirmButton(buttonContainer);
-  }
-}
-
-function observeConfirmButton(buttonContainer: HTMLElement) {
-  const editor = document.getElementById('editor');
-
-  if (!editor) {
-    return;
-  }
-
-  const observer = new MutationObserver((mutationsList) => {
-    for (const mutation of mutationsList) {
-      if (mutation.type === 'childList') {
-        const confirmButton = buttonContainer.querySelector('.text-label-r.bg-green-s');
-        if (confirmButton instanceof HTMLElement) {
-          confirmButton.click();
-          observer.disconnect();
-          break;
-        }
-      }
-    }
-  });
-
-  observer.observe(editor, { childList: true, subtree: true });
-}
-
-async function autoResetEnabled(): Promise<boolean> {
-  const data = await browser.storage.local.get('autoResetSetting');
-  return Boolean(data.autoResetSetting);
-}
-
-function observeEditor() {
-  const editor = document.getElementById('editor');
-
-  if (!editor) {
-    return;
-  }
-
-  const observer = new MutationObserver((mutationsList) => {
-    for (const mutation of mutationsList) {
-      if (mutation.type === 'childList') {
-        const sideButtonsContainer = editor.getElementsByClassName('flex items-center gap-1');
-        const buttonContainer = sideButtonsContainer.length
-          ? (sideButtonsContainer[0] as HTMLElement)
-          : null;
-        if (buttonContainer) {
-          clickResetButton(buttonContainer);
-          observer.disconnect();
-          break;
-        }
-      }
-    }
-  });
-
-  observer.observe(editor, { childList: true, subtree: true });
-}
 
 function clearNeetcodeLocalStorageForSlug(slug: string) {
   const keysToRemove: string[] = [];
@@ -135,18 +77,6 @@ function clearNeetcodeLocalStorageForSlug(slug: string) {
   keysToRemove.forEach((key) => {
     localStorage.removeItem(key);
   });
-}
-
-function setupLeetcodeAutoClear() {
-  if (!isLeetcodeHost()) {
-    return;
-  }
-
-  window.onload = async () => {
-    if (await autoResetEnabled()) {
-      observeEditor();
-    }
-  };
 }
 
 function setupNeetcodeAutoClear() {
