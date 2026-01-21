@@ -164,7 +164,7 @@ export const i18n = {
     },
 
     problemAutoClear: {
-      title: 'Enable Auto Reset',
+      title: 'Problem Auto Reset',
       description: 'Automatically reset code when opening a LeetCode problem.',
       enableAutoReset: 'Enable auto reset',
     },
