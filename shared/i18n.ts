@@ -153,6 +153,16 @@ export const i18n = {
       dayStartHour: 'Next Day Offset (hours past midnight)',
     },
 
+    // Hotkeys section
+    hotkeys: {
+      title: 'Hotkeys',
+      description: 'Customize keyboard shortcuts for LeetSRS.',
+      openPopupLabel: 'Open popup',
+      currentShortcutLabel: 'Current shortcut',
+      notSet: 'Not set',
+      manageShortcuts: 'Manage shortcuts',
+    },
+
     // Data section
     data: {
       title: 'Data',

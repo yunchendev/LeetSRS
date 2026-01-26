@@ -229,4 +229,14 @@ export default defineBackground(() => {
     // Return true to indicate we'll send a response asynchronously
     return true;
   });
+
+  browser.commands.onCommand.addListener(async (command) => {
+    if (command !== 'open-popup') return;
+
+    try {
+      await browser.action.openPopup();
+    } catch (error) {
+      console.error('Failed to open popup:', error);
+    }
+  });
 });
