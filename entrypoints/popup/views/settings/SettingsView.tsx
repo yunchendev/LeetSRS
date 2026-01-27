@@ -44,8 +44,7 @@ function HotkeysSection() {
         <div className="flex items-center justify-between">
           <span>{i18n.settings.hotkeys.openPopupLabel}</span>
           <span className="text-sm text-tertiary">
-            {i18n.settings.hotkeys.currentShortcutLabel}:{' '}
-            {openPopupShortcut || i18n.settings.hotkeys.notSet}
+            {i18n.settings.hotkeys.currentShortcutLabel}: {openPopupShortcut || i18n.settings.hotkeys.notSet}
           </span>
         </div>
         <Button
