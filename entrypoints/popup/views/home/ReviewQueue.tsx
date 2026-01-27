@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useCallback, useMemo, useState, useEffect } from 'react';
 import { ReviewCard } from './ReviewCard';
 import { NotesSection } from './NotesSection';
 import { ActionsSection } from './ActionsSection';
@@ -9,14 +9,17 @@ import {
   useDelayCardMutation,
   usePauseCardMutation,
   useAnimationsEnabledQuery,
+  useRatingHotkeysQuery,
 } from '@/hooks/useBackgroundQueries';
 import { Rating, type Grade } from 'ts-fsrs';
 import { i18n } from '@/shared/i18n';
 import type { Card } from '@/shared/cards';
+import { DEFAULT_RATING_HOTKEYS } from '@/shared/settings';
 
 export function ReviewQueue() {
   const { data: animationsEnabled = true } = useAnimationsEnabledQuery();
   const { data: queue = [], isLoading, error } = useReviewQueueQuery({ refetchOnWindowFocus: true });
+  const { data: ratingHotkeys = DEFAULT_RATING_HOTKEYS } = useRatingHotkeysQuery();
   const rateCardMutation = useRateCardMutation();
   const removeCardMutation = useRemoveCardMutation();
   const delayCardMutation = useDelayCardMutation();
@@ -32,57 +35,63 @@ export function ReviewQueue() {
     return tagName === 'input' || tagName === 'textarea' || tagName === 'select' || element.isContentEditable;
   };
 
-  const handleCardAction = async <T,>(
-    action: () => Promise<T>,
-    options: {
-      getSlideDirection?: (result: T) => 'left' | 'right' | null;
-      errorMessage: string;
-    }
-  ) => {
-    if (queue.length === 0 || isProcessing) return;
-
-    setAnimatingCard(queue[0]);
-    setIsProcessing(true);
-
-    try {
-      const result = await action();
-
-      if (animationsEnabled && options.getSlideDirection) {
-        const direction = options.getSlideDirection(result);
-        if (direction) setSlideDirection(direction);
+  const handleCardAction = useCallback(
+    async <T,>(
+      action: () => Promise<T>,
+      options: {
+        getSlideDirection?: (result: T) => 'left' | 'right' | null;
+        errorMessage: string;
       }
+    ) => {
+      if (queue.length === 0 || isProcessing) return;
 
-      const animationDelay = animationsEnabled ? 400 : 0;
-      setTimeout(() => {
+      setAnimatingCard(queue[0]);
+      setIsProcessing(true);
+
+      try {
+        const result = await action();
+
+        if (animationsEnabled && options.getSlideDirection) {
+          const direction = options.getSlideDirection(result);
+          if (direction) setSlideDirection(direction);
+        }
+
+        const animationDelay = animationsEnabled ? 400 : 0;
+        setTimeout(() => {
+          setSlideDirection(null);
+          setIsProcessing(false);
+          setAnimatingCard(null);
+        }, animationDelay);
+      } catch (error) {
+        console.error(options.errorMessage, error);
         setSlideDirection(null);
         setIsProcessing(false);
         setAnimatingCard(null);
-      }, animationDelay);
-    } catch (error) {
-      console.error(options.errorMessage, error);
-      setSlideDirection(null);
-      setIsProcessing(false);
-      setAnimatingCard(null);
-    }
-  };
-
-  const handleRating = async (rating: Grade) => {
-    const currentCard = queue[0];
-    await handleCardAction(
-      () =>
-        rateCardMutation.mutateAsync({
-          slug: currentCard.slug,
-          name: currentCard.name,
-          rating,
-          leetcodeId: currentCard.leetcodeId,
-          difficulty: currentCard.difficulty,
-        }),
-      {
-        getSlideDirection: (result) => (result.shouldRequeue ? 'left' : 'right'),
-        errorMessage: 'Failed to rate card:',
       }
-    );
-  };
+    },
+    [animationsEnabled, isProcessing, queue]
+  );
+
+  const handleRating = useCallback(
+    async (rating: Grade) => {
+      const currentCard = queue[0];
+      await handleCardAction(
+        () =>
+          rateCardMutation.mutateAsync({
+            slug: currentCard.slug,
+            name: currentCard.name,
+            rating,
+            leetcodeId: currentCard.leetcodeId,
+            difficulty: currentCard.difficulty,
+          }),
+        {
+          getSlideDirection: (result) => (result.shouldRequeue ? 'left' : 'right'),
+          errorMessage: 'Failed to rate card:',
+        }
+      );
+    },
+    [queue, handleCardAction, rateCardMutation]
+  );
 
   const handleDelete = async () => {
     const currentCard = queue[0];
@@ -108,37 +117,32 @@ export function ReviewQueue() {
     });
   };
 
+  const ratingHotkeyMap = useMemo(() => {
+    const map: Record<string, Grade> = {};
+    if (ratingHotkeys.again) map[ratingHotkeys.again.toLowerCase()] = Rating.Again as Grade;
+    if (ratingHotkeys.hard) map[ratingHotkeys.hard.toLowerCase()] = Rating.Hard as Grade;
+    if (ratingHotkeys.good) map[ratingHotkeys.good.toLowerCase()] = Rating.Good as Grade;
+    if (ratingHotkeys.easy) map[ratingHotkeys.easy.toLowerCase()] = Rating.Easy as Grade;
+    return map;
+  }, [ratingHotkeys]);
+
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.defaultPrevented || isTypingTarget(event.target) || queue.length === 0 || isProcessing) {
         return;
       }
 
-      switch (event.key) {
-        case '1':
-          event.preventDefault();
-          handleRating(Rating.Again);
-          break;
-        case '2':
-          event.preventDefault();
-          handleRating(Rating.Hard);
-          break;
-        case '3':
-          event.preventDefault();
-          handleRating(Rating.Good);
-          break;
-        case '4':
-          event.preventDefault();
-          handleRating(Rating.Easy);
-          break;
-        default:
-          break;
+      const key = event.key.toLowerCase();
+      const rating = ratingHotkeyMap[key];
+      if (rating !== undefined) {
+        event.preventDefault();
+        handleRating(rating);
       }
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [queue.length, isProcessing, handleRating]);
+  }, [queue.length, isProcessing, handleRating, ratingHotkeyMap]);
 
   if (isLoading) {
     return (

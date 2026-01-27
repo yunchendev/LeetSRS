@@ -61,6 +61,12 @@ describe('import-export', () => {
         dayStartHour: 4,
         animationsEnabled: true,
         theme: 'dark' as const,
+        ratingHotkeys: {
+          again: 'z',
+          hard: 'x',
+          good: 'c',
+          easy: 'v',
+        },
       };
 
       // Set up storage with mock data
@@ -71,6 +77,7 @@ describe('import-export', () => {
       await storage.setItem(STORAGE_KEYS.dayStartHour, mockSettings.dayStartHour);
       await storage.setItem(STORAGE_KEYS.animationsEnabled, mockSettings.animationsEnabled);
       await storage.setItem(STORAGE_KEYS.theme, mockSettings.theme);
+      await storage.setItem(STORAGE_KEYS.ratingHotkeys, mockSettings.ratingHotkeys);
 
       const result = await exportData();
       const parsed = JSON.parse(result);
@@ -155,6 +162,12 @@ describe('import-export', () => {
           dayStartHour: 2,
           animationsEnabled: false,
           theme: 'light' as const,
+          ratingHotkeys: {
+            again: 'q',
+            hard: 'w',
+            good: 'e',
+            easy: 'r',
+          },
         },
       },
     };
@@ -173,6 +186,12 @@ describe('import-export', () => {
       expect(await storage.getItem(STORAGE_KEYS.dayStartHour)).toEqual(2);
       expect(await storage.getItem(STORAGE_KEYS.animationsEnabled)).toEqual(false);
       expect(await storage.getItem(STORAGE_KEYS.theme)).toEqual('light');
+      expect(await storage.getItem(STORAGE_KEYS.ratingHotkeys)).toEqual({
+        again: 'q',
+        hard: 'w',
+        good: 'e',
+        easy: 'r',
+      });
     });
 
     it('should clear existing data before importing', async () => {
@@ -265,6 +284,12 @@ describe('import-export', () => {
       await storage.setItem(STORAGE_KEYS.dayStartHour, 3);
       await storage.setItem(STORAGE_KEYS.animationsEnabled, true);
       await storage.setItem(STORAGE_KEYS.theme, 'dark');
+      await storage.setItem(STORAGE_KEYS.ratingHotkeys, {
+        again: 'a',
+        hard: 's',
+        good: 'd',
+        easy: 'f',
+      });
       await storage.setItem(`${STORAGE_KEYS.notes}:problem-1` as const, { text: 'note 1' });
       await storage.setItem(`${STORAGE_KEYS.notes}:problem-2` as const, { text: 'note 2' });
 
@@ -277,6 +302,7 @@ describe('import-export', () => {
       expect(await storage.getItem(STORAGE_KEYS.dayStartHour)).toBeNull();
       expect(await storage.getItem(STORAGE_KEYS.animationsEnabled)).toBeNull();
       expect(await storage.getItem(STORAGE_KEYS.theme)).toBeNull();
+      expect(await storage.getItem(STORAGE_KEYS.ratingHotkeys)).toBeNull();
       expect(await storage.getItem(`${STORAGE_KEYS.notes}:problem-1` as const)).toBeNull();
       expect(await storage.getItem(`${STORAGE_KEYS.notes}:problem-2` as const)).toBeNull();
     });

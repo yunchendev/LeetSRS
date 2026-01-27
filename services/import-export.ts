@@ -3,7 +3,7 @@ import { STORAGE_KEYS } from './storage-keys';
 import { type StoredCard } from './cards';
 import { type DailyStats } from './stats';
 import { type Note } from '@/shared/notes';
-import { type Theme } from '@/shared/settings';
+import { type RatingHotkeys, type Theme } from '@/shared/settings';
 import { getCurrentSchemaVersion } from './migrations';
 
 export interface ExportData {
@@ -19,6 +19,7 @@ export interface ExportData {
       dayStartHour?: number;
       animationsEnabled?: boolean;
       theme?: Theme;
+      ratingHotkeys?: RatingHotkeys;
     };
     gistSync?: {
       gistId?: string;
@@ -49,6 +50,7 @@ export async function exportData(): Promise<string> {
   const dayStartHour = await storage.getItem<number>(STORAGE_KEYS.dayStartHour);
   const animationsEnabled = await storage.getItem<boolean>(STORAGE_KEYS.animationsEnabled);
   const theme = await storage.getItem<Theme>(STORAGE_KEYS.theme);
+  const ratingHotkeys = await storage.getItem<RatingHotkeys>(STORAGE_KEYS.ratingHotkeys);
 
   // Get gist sync settings
   const gistId = await storage.getItem<string>(STORAGE_KEYS.gistId);
@@ -72,6 +74,7 @@ export async function exportData(): Promise<string> {
         ...(dayStartHour != null && { dayStartHour }),
         ...(animationsEnabled != null && { animationsEnabled }),
         ...(theme != null && { theme }),
+        ...(ratingHotkeys != null && { ratingHotkeys }),
       },
       gistSync: {
         ...(gistId != null && { gistId }),
@@ -155,6 +158,9 @@ export async function importData(jsonData: string): Promise<void> {
     if (data.data.settings.theme != null) {
       await storage.setItem(STORAGE_KEYS.theme, data.data.settings.theme);
     }
+    if (data.data.settings.ratingHotkeys != null) {
+      await storage.setItem(STORAGE_KEYS.ratingHotkeys, data.data.settings.ratingHotkeys);
+    }
   }
 
   // Import gist sync settings
@@ -182,6 +188,7 @@ export async function resetAllData(): Promise<void> {
   await storage.removeItem(STORAGE_KEYS.dayStartHour);
   await storage.removeItem(STORAGE_KEYS.animationsEnabled);
   await storage.removeItem(STORAGE_KEYS.theme);
+  await storage.removeItem(STORAGE_KEYS.ratingHotkeys);
 
   // Remove gist sync settings
   await storage.removeItem(STORAGE_KEYS.githubPat);

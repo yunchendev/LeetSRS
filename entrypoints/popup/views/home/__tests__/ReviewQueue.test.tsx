@@ -11,10 +11,12 @@ import {
   useRemoveCardMutation,
   useDelayCardMutation,
   usePauseCardMutation,
+  useRatingHotkeysQuery,
 } from '@/hooks/useBackgroundQueries';
 import { createQueryMock, createMutationMock } from '@/test/utils/query-mocks';
 import { createMockCard } from '@/test/utils/card-mocks';
 import { Rating, State } from 'ts-fsrs';
+import { DEFAULT_RATING_HOTKEYS } from '@/shared/settings';
 
 // Mock localStorage to disable animations in tests
 const originalLocalStorage = window.localStorage;
@@ -37,6 +39,7 @@ vi.mock('@/hooks/useBackgroundQueries', () => ({
   useRemoveCardMutation: vi.fn(),
   useDelayCardMutation: vi.fn(),
   usePauseCardMutation: vi.fn(),
+  useRatingHotkeysQuery: vi.fn(),
   useAnimationsEnabledQuery: vi.fn(() => ({ data: false })),
   useSetAnimationsEnabledMutation: vi.fn(() => ({ mutate: vi.fn() })),
   useThemeQuery: vi.fn(() => ({ data: 'dark' })),
@@ -199,6 +202,10 @@ describe('ReviewQueue', () => {
         mutateAsync: vi.fn(),
         isPending: false,
       }) as ReturnType<typeof usePauseCardMutation>
+    );
+
+    vi.mocked(useRatingHotkeysQuery).mockReturnValue(
+      createQueryMock(DEFAULT_RATING_HOTKEYS) as ReturnType<typeof useRatingHotkeysQuery>
     );
   });
 

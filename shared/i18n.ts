@@ -159,6 +159,8 @@ export const i18n = {
       description: 'Customize keyboard shortcuts for LeetSRS.',
       openPopupLabel: 'Open popup',
       currentShortcutLabel: 'Current shortcut',
+      ratingShortcutsLabel: 'Rating shortcuts',
+      focusNote: 'Rating shortcuts only work when the extension window is focused.',
       notSet: 'Not set',
       manageShortcuts: 'Manage shortcuts',
     },

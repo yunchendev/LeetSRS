@@ -8,12 +8,15 @@ import {
   setAnimationsEnabled,
   getTheme,
   setTheme,
+  getRatingHotkeys,
+  setRatingHotkeys,
 } from '../settings';
 import { STORAGE_KEYS } from '../storage-keys';
 import {
   DEFAULT_MAX_NEW_CARDS_PER_DAY,
   MIN_NEW_CARDS_PER_DAY,
   MAX_NEW_CARDS_PER_DAY,
+  DEFAULT_RATING_HOTKEYS,
   DEFAULT_THEME,
 } from '@/shared/settings';
 
@@ -320,6 +323,46 @@ describe('Settings Service', () => {
 
       await setTheme('dark');
       expect(await getTheme()).toBe('dark');
+    });
+  });
+
+  describe('getRatingHotkeys', () => {
+    it('should return defaults when no stored value exists', async () => {
+      const result = await getRatingHotkeys();
+      expect(result).toEqual(DEFAULT_RATING_HOTKEYS);
+    });
+
+    it('should merge stored values with defaults', async () => {
+      await storage.setItem(STORAGE_KEYS.ratingHotkeys, { again: 'q', hard: 'w' });
+      const result = await getRatingHotkeys();
+      expect(result).toEqual({
+        again: 'q',
+        hard: 'w',
+        good: DEFAULT_RATING_HOTKEYS.good,
+        easy: DEFAULT_RATING_HOTKEYS.easy,
+      });
+    });
+  });
+
+  describe('setRatingHotkeys', () => {
+    it('should store valid hotkeys', async () => {
+      const hotkeys = { again: 'z', hard: 'x', good: 'c', easy: 'v' };
+      await setRatingHotkeys(hotkeys);
+
+      const storedValue = await storage.getItem(STORAGE_KEYS.ratingHotkeys);
+      expect(storedValue).toEqual(hotkeys);
+    });
+
+    it('should throw when a hotkey is empty', async () => {
+      await expect(setRatingHotkeys({ again: '', hard: '2', good: '3', easy: '4' })).rejects.toThrow(
+        'Hotkey for again must be a single character'
+      );
+    });
+
+    it('should throw when a hotkey is more than one character', async () => {
+      await expect(setRatingHotkeys({ again: '12', hard: '2', good: '3', easy: '4' })).rejects.toThrow(
+        'Hotkey for again must be a single character'
+      );
     });
   });
 });

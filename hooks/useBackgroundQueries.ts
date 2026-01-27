@@ -2,7 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { sendMessage, MessageType } from '@/shared/messages';
 import type { Grade } from 'ts-fsrs';
 import type { Difficulty, Card } from '@/shared/cards';
-import type { Theme } from '@/shared/settings';
+import type { RatingHotkeys, Theme } from '@/shared/settings';
 import type { GistSyncConfig } from '@/shared/gist-sync';
 
 // Query Keys with hierarchical structure
@@ -33,6 +33,7 @@ export const queryKeys = {
     dayStartHour: ['settings', 'dayStartHour'] as const,
     animationsEnabled: ['settings', 'animationsEnabled'] as const,
     theme: ['settings', 'theme'] as const,
+    ratingHotkeys: ['settings', 'ratingHotkeys'] as const,
   },
   // Gist Sync related queries
   gistSync: {
@@ -292,6 +293,24 @@ export function useSetThemeMutation() {
     mutationFn: (value: Theme) => sendMessage({ type: MessageType.SET_THEME, value }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.settings.theme });
+    },
+  });
+}
+
+export function useRatingHotkeysQuery() {
+  return useQuery({
+    queryKey: queryKeys.settings.ratingHotkeys,
+    queryFn: () => sendMessage({ type: MessageType.GET_RATING_HOTKEYS }),
+  });
+}
+
+export function useSetRatingHotkeysMutation() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (value: RatingHotkeys) => sendMessage({ type: MessageType.SET_RATING_HOTKEYS, value }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.settings.ratingHotkeys });
     },
   });
 }

@@ -7,6 +7,8 @@ import {
   DEFAULT_DAY_START_HOUR,
   MIN_DAY_START_HOUR,
   MAX_DAY_START_HOUR,
+  DEFAULT_RATING_HOTKEYS,
+  RatingHotkeys,
   Theme,
   DEFAULT_THEME,
 } from '@/shared/settings';
@@ -60,4 +62,27 @@ export async function setTheme(value: Theme): Promise<void> {
     throw new Error('Theme must be either "light" or "dark"');
   }
   await storage.setItem(STORAGE_KEYS.theme, value);
+}
+
+export async function getRatingHotkeys(): Promise<RatingHotkeys> {
+  const value = await storage.getItem<Partial<RatingHotkeys>>(STORAGE_KEYS.ratingHotkeys);
+  return { ...DEFAULT_RATING_HOTKEYS, ...(value ?? {}) };
+}
+
+export async function setRatingHotkeys(value: RatingHotkeys): Promise<void> {
+  validateRatingHotkeys(value);
+  await storage.setItem(STORAGE_KEYS.ratingHotkeys, value);
+}
+
+function validateRatingHotkeys(value: RatingHotkeys): void {
+  const entries = Object.entries(value);
+  for (const [key, hotkey] of entries) {
+    if (typeof hotkey !== 'string') {
+      throw new Error(`Hotkey for ${key} must be a string`);
+    }
+    const trimmed = hotkey.trim();
+    if (trimmed.length !== 1) {
+      throw new Error(`Hotkey for ${key} must be a single character`);
+    }
+  }
 }

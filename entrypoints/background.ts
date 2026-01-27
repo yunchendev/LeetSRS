@@ -18,6 +18,8 @@ import {
   setAnimationsEnabled,
   getTheme,
   setTheme,
+  getRatingHotkeys,
+  setRatingHotkeys,
 } from '@/services/settings';
 import { browser } from 'wxt/browser';
 import { MessageType, type MessageRequest } from '@/shared/messages';
@@ -167,6 +169,15 @@ export default defineBackground(() => {
 
       case MessageType.SET_THEME: {
         const result = await setTheme(request.value);
+        await markDataUpdated();
+        return result;
+      }
+
+      case MessageType.GET_RATING_HOTKEYS:
+        return await getRatingHotkeys();
+
+      case MessageType.SET_RATING_HOTKEYS: {
+        const result = await setRatingHotkeys(request.value);
         await markDataUpdated();
         return result;
       }
