@@ -245,8 +245,16 @@ export default defineBackground(() => {
     if (command !== 'open-popup') return;
 
     try {
+      const window = await browser.windows.getLastFocused();
+      if (!window || window.id == null || window.type !== 'normal' || window.state === 'minimized') {
+        return;
+      }
       await browser.action.openPopup();
     } catch (error) {
+      const message = error instanceof Error ? error.message : '';
+      if (message.includes('Could not find an active browser window')) {
+        return;
+      }
       console.error('Failed to open popup:', error);
     }
   });
